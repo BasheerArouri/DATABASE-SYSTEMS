@@ -1,0 +1,130 @@
+-- SQL Code For Vehicle  Training School Project
+CREATE DATABASE training_school;
+SHOW DATABASES;
+USE training_school;
+-- DROP DATABASE training_school;
+-- First Table (school owner or school admin)
+CREATE TABLE school_owner(
+	o_number int UNSIGNED,
+    o_name varchar(64) NOT NULL,
+    o_address varchar(64) NOT NULL,
+    o_gender char NOT NULL,
+    o_phonenumber int UNSIGNED NOT NULL,
+    o_dateofbirth date NOT NULL,
+    occupational_manager boolean DEFAULT false,
+    o_password varchar(64) NOT NULL DEFAULT 'Admin',
+	CHECK (o_gender = 'M' OR o_gender = 'F'),-- the gender must be M (male) or F (female)
+    PRIMARY KEY (o_number));
+INSERT INTO school_owner(o_number, o_name, o_address, o_gender, o_phonenumber, o_dateofbirth, occupational_manager)
+VALUES (1, 'Musa', 'Ramallah', 'M', 0599999999, '1986-12-11', true);
+SELECT *
+FROM school_owner;
+-- DROP TABLE school_owner;
+
+-- Second Table Teacher
+CREATE TABLE teacher(
+t_number int UNSIGNED,
+t_name varchar(64) NOT NULL,
+t_phonenumber int UNSIGNED NOT NULL,
+t_address varchar(64) NOT NULL,
+t_gender char NOT NULL,
+t_dateofbirth date NOT NULL,
+t_numberoflessons int UNSIGNED DEFAULT 0,
+t_password char(64) NOT NULL,
+o_number int UNSIGNED DEFAULT 1, -- because in our database we have just one manager whose number is 1
+CHECK (t_gender = 'M' OR t_gender = 'F'),-- the gender must be M (male) or F (female)
+PRIMARY KEY (t_number),
+FOREIGN KEY (o_number) REFERENCES school_owner(o_number)
+);
+-- DROP TABLE teacher;
+INSERT INTO teacher(t_number, t_name, t_phonenumber, t_address, t_gender, t_dateofbirth, t_numberoflessons, t_password)
+VALUES(1, 'Mohammad', 0599888888, 'Nablus', 'M', '1988-02-11', 2, 'Mohammad1');
+INSERT INTO teacher(t_number, t_name, t_phonenumber, t_address, t_gender, t_dateofbirth, t_numberoflessons, t_password)
+VALUES(2, 'Ali', 0599666666, 'Qalqilia', 'M', '1970-04-20', 3, 'ali 2');
+SELECT *
+FROM teacher;
+
+-- Third Table Type of Teaching (because we have multiple types (Automatic Gear, Normal Gear Truck) we decide to convert this multivalue attribute to entity)
+CREATE TABLE typeOfTeaching(
+type_number int UNSIGNED,
+type_name char NOT NULL,
+CHECK (type_name = 'A' OR type_name = 'N' OR type_name = 'T'),-- the type of vehicle must be one of the following types :
+-- 1- Automatic Gear (A) 2- Normal Gear (G) 3- Truck (T)
+PRIMARY KEY (type_number));
+INSERT INTO typeOfTeaching
+VALUES (1, 'A');
+INSERT INTO typeOfTeaching
+VALUES (2, 'N');
+INSERT INTO typeOfTeaching
+VALUES (3, 'T');
+SELECT *
+FROM typeOfTeaching;
+
+-- Third Table Vehicle
+CREATE TABLE vehicle(
+v_number int UNSIGNED,
+v_name varchar(64) NOT NULL,
+v_yearofpurchasing year NOT NULL,
+v_license_and_insurance boolean NOT NULL DEFAULT false,
+v_type char NOT NULL,
+ready_to_training boolean NOT NULL DEFAULT false,
+v_model int NOT NULL,
+o_number int UNSIGNED,
+type_number int UNSIGNED,
+CHECK (v_model >= 2023 - 10),-- the model of car must be within ten years (from this year)
+CHECK (v_type = 'A' OR v_type = 'N' OR v_type = 'T'),-- the type of vehicle must be one of the following types :
+-- 1- Automatic Gear (A) 2- Normal Gear (G) 3- Truck (T)
+PRIMARY KEY (v_number),
+FOREIGN KEY (o_number) REFERENCES school_owner(o_number),
+FOREIGN KEY (type_number) REFERENCES typeOfTeaching(type_number)
+);
+-- DROP TABLE vehicle;
+INSERT INTO vehicle
+VALUES(1, 'Hyundai', '2021', true, 'A', true, '2020', 1, 1);
+INSERT INTO vehicle
+VALUES(2, 'MAN', '2014', true, 'T', true, '2014', 1, 3);
+SELECT *
+FROM vehicle;
+
+-- Fourth Table studnet
+CREATE TABLE student(
+s_id int UNSIGNED,
+s_name varchar(64) NOT NULL,
+s_address varchar(64) NOT NULL,
+s_typeofwork varchar(64) NOT NULL,
+s_phonenumber int NOT NULL,
+s_gender varchar (64) NOT NULL,
+s_mobilenumber int,
+t_number int UNSIGNED,
+v_number int UNSIGNED,
+type_number int UNSIGNED,
+CHECK (s_gender = 'M' OR s_gender = 'F'),-- the gender must be M (male) or F (female)
+PRIMARY KEY (s_id),
+FOREIGN KEY (t_number) REFERENCES teacher(t_number),
+FOREIGN KEY (v_number) REFERENCES vehicle(v_number),
+FOREIGN KEY (type_number) REFERENCES typeOfTeaching(type_number)
+);
+-- DROP TABLE student;
+INSERT INTO student
+VALUES (1, 'Ahmad', 'Hebron', 'Doctor', 0577777777, 'M', 022972255, 1, 1, 3);
+INSERT INTO student
+VALUES (2, 'Momen', 'Yaffa', 'Computer Engineer', 0555555555, 'M', 022972256, 1, 1, 1);
+SELECT *
+FROM student;
+
+-- Middle TABLE BETWEEN Teacher and Vehicle
+CREATE TABLE vehicle_to_teacher(
+v_number int UNSIGNED,
+t_number int UNSIGNED,
+PRIMARY KEY (v_number, t_number),
+FOREIGN KEY (v_number) REFERENCES vehicle(v_number),
+FOREIGN KEY (t_number) REFERENCES teacher(t_number)
+);
+INSERT INTO vehicle_to_teacher
+VALUES (1, 1);
+INSERT INTO vehicle_to_teacher
+VALUES (2, 1);
+-- INSERT INTO vehicle_to_teacher
+-- VALUES (3, 1); -- there is no number 3 in vhicle table
+SELECT *
+FROM vehicle_to_teacher;
